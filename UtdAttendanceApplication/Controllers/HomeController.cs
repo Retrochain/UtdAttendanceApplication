@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using UtdAttendanceApplication.Data;
 using UtdAttendanceApplication.ViewModels;
@@ -75,7 +76,7 @@ public class HomeController : Controller
                             var stdntEnroll = _context.Enrollments.Where(e => e.StudentId == stdnt.StudentId).FirstOrDefault();
                             if ((stdntEnroll?.CourseId == stdntPassCourse.CourseId) && (stdntEnroll?.SectionId == stdntPassSection.SectionId))
                             {
-                                Console.WriteLine("Hi");
+                                return RedirectToAction("Quiz");
                             }
                             else
                             {
@@ -110,14 +111,97 @@ public class HomeController : Controller
         return View();
     }
 
-    public IActionResult Privacy()
-    {
-        return View();
-    }
-
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
+
+    //This method will load the quiz for the student to take
+    public async Task<IActionResult> Quiz(int id)
+    {
+        //Get the students UTD ID that was set during login
+        var utdId = TempData["UtdId"]?.ToString();
+        if (string.IsNullOrEmpty(utdId))
+        {
+            return RedirectToAction("Login");
+        }
+
+        //retrieve the quiz with course information
+        var quiz = await _context.Quizes
+                .Include(q => q.Course)
+                .Include(q => q.Section)
+                .FirstOrDefaultAsync(q => q.QuizId == id);
+
+
+        if (quiz == null)
+        {
+            TempData["ErrorMessage"] = "Quiz not found.";
+            return RedirectToAction("Login");
+        }
+
+        // Get student ID from UTD ID
+        var student = await _context.Students
+            .FirstOrDefaultAsync(s => s.UtdId == utdId);
+
+        // Check if quiz is currently available
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        if (today < quiz.AvailabeOn || today > quiz.AvailableUntil)
+        {
+            ViewBag.ErrorMessage = "This quiz is not currently available.";
+            ViewBag.QuizTitle = quiz.QuizTitle;
+            ViewBag.CourseName = quiz.Course.CourseName;
+            ViewBag.SectionCode = quiz.Section?.SectionCode.ToString() ?? "N/A";
+            return View("QuizClosed");
+        }
+
+        //Check if quiz was already taken?
+
+        // Get quiz questions (0 - 3 questions)
+        var questions = await _context.QuizQuestions
+        .Include(q => q.QuestionOptions)
+        .Where(q => q.QuestionId == quiz.QuestionId || q.QuizBanks.Any(qb => qb.QuestionId == quiz.QuestionId))
+        .Take(3) // Maximum 3 questions
+        .ToListAsync();
+
+        // Create the view model with all necessary data
+        var viewModel = new QuizViewModel
+        {
+            // viewmodel data
+        };
+
+        return View(viewModel);
+    }
+
+    /*
+    [HttpPost]
+    public async Task<IActionResult> SubmitQuiz(QuizViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View("Quiz", model);
+        }
+
+        // Get student from UTD ID
+        var student = await _context.Students
+            .FirstOrDefaultAsync(s => s.UtdId == model.UtdId);
+
+        // Record attendance
+        var attendance = new Attendance
+        {
+            StudentId = student.StudentId,
+            CourseId = model.CourseId,
+            SectionId = model.SectionId,
+            QuizId = model.QuizId,
+            AttendanceStatus = "present",
+            Time = DateTime.Now
+        };
+
+        _context.Attendances.Add(attendance);
+
+        //record quiz answers 
+
+
+    }*/
+
 }
