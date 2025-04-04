@@ -15,13 +15,15 @@ public partial class Quize
 
     public string QuizTitle { get; set; } = null!;
 
-    public string QuizPwd { get; set; } = null!;
+    public DateOnly? AvailabeOn { get; set; }
 
-    public DateTime AvailabeOn { get; set; }
-
-    public DateTime AvailableUntil { get; set; }
+    public DateOnly? AvailableUntil { get; set; }
 
     public DateTime? CreatedOn { get; set; }
+
+    public TimeOnly? TimeStart { get; set; }
+
+    public TimeOnly? TimeEnd { get; set; }
 
     public virtual ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
 

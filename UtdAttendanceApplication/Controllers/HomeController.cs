@@ -62,7 +62,38 @@ public class HomeController : Controller
                 var stdntPass = _context.Passwords.Where(p => p.Pwd == model.Password).FirstOrDefault();
                 if (stdntPass != null)
                 {
-
+                    // We then check if the password belongs to the course and section
+                    var stdntPassCourse = _context.Courses.Where(c => c.CourseId == stdntPass.CourseId).FirstOrDefault();
+                    var stdntPassSection = _context.Sections.Where(s => s.SectionId == stdntPass.SectionId).FirstOrDefault();
+                    if ((stdntPassCourse != null) && (stdntPassSection != null))
+                    {
+                        // We then check if the password is currently live or expired
+                        DateTime currentTime = DateTime.Now;
+                        if (currentTime >= stdntPass.AvailableOn && currentTime <= stdntPass.AvailableUntil)
+                        {
+                            // We then check if the student belongs to the course or the section
+                            var stdntEnroll = _context.Enrollments.Where(e => e.StudentId == stdnt.StudentId).FirstOrDefault();
+                            if ((stdntEnroll?.CourseId == stdntPassCourse.CourseId) && (stdntEnroll?.SectionId == stdntPassSection.SectionId))
+                            {
+                                Console.WriteLine("Hi");
+                            }
+                            else
+                            {
+                                // Otherwise we display that the user doesnt exist in the course and section
+                                ModelState.AddModelError("UtdId", "Student doesn't belong in the course or section");
+                            }
+                        }
+                        else
+                        {
+                            // Otherwise we tell the user that the password is expired
+                            ModelState.AddModelError("Password", "Password not yet live or expired");
+                        }
+                    }
+                    else
+                    {
+                        // Otherwise we tell the user that the password isnt in the course OR the section
+                        ModelState.AddModelError("Password", "Password entered for wrong section or course");
+                    }
                 }
                 else
                 {

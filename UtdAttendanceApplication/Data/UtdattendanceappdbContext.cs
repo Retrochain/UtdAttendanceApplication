@@ -1,17 +1,17 @@
 ﻿using Microsoft.EntityFrameworkCore;
+
 using UtdAttendanceApplication.Models;
 
 namespace UtdAttendanceApplication.Data;
 
 public partial class UtdattendanceappdbContext : DbContext
 {
-    public UtdattendanceappdbContext()
-    {
-    }
+    private readonly IConfiguration _configuration;
 
-    public UtdattendanceappdbContext(DbContextOptions<UtdattendanceappdbContext> options)
+    public UtdattendanceappdbContext(DbContextOptions<UtdattendanceappdbContext> options, IConfiguration configuration)
         : base(options)
     {
+        _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
 
     public virtual DbSet<Attendance> Attendances { get; set; }
@@ -39,8 +39,14 @@ public partial class UtdattendanceappdbContext : DbContext
     public virtual DbSet<StudentAnswer> StudentAnswers { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseMySql("server=utdattendanceappdb.c3s2mqc0kuff.us-east-2.rds.amazonaws.com;port=3306;database=utdattendanceappdb;user=admin;password=\"W#t=r%2Q25!!\"", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.40-mysql"));
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            var connstr = _configuration.GetConnectionString("DefaultConnection");
+            optionsBuilder.UseMySql(connstr, ServerVersion.Parse("8.0.40-mysql"));
+            throw new InvalidOperationException("Database connection string is not configured");
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -315,22 +321,11 @@ public partial class UtdattendanceappdbContext : DbContext
 
             entity.HasIndex(e => e.QuestionId, "questionID_UNIQUE").IsUnique();
 
-            entity.HasIndex(e => e.QuizBankId, "quizBankID_idx");
-
             entity.Property(e => e.QuestionId).HasColumnName("questionID");
             entity.Property(e => e.CorrectOption).HasColumnName("correctOption");
-            entity.Property(e => e.QuestionAnswer)
-                .HasMaxLength(255)
-                .HasColumnName("questionAnswer");
             entity.Property(e => e.QuestionText)
                 .HasColumnType("text")
                 .HasColumnName("questionText");
-            entity.Property(e => e.QuizBankId).HasColumnName("quizBankID");
-
-            entity.HasOne(d => d.QuizBank).WithMany(p => p.QuizQuestions)
-                .HasForeignKey(d => d.QuizBankId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("quizBankID");
         });
 
         modelBuilder.Entity<Quize>(entity =>
@@ -348,25 +343,24 @@ public partial class UtdattendanceappdbContext : DbContext
             entity.HasIndex(e => e.SectionId, "quizSectionID_idx");
 
             entity.Property(e => e.QuizId).HasColumnName("quizID");
-            entity.Property(e => e.AvailabeOn)
-                .HasColumnType("datetime")
-                .HasColumnName("availabeOn");
-            entity.Property(e => e.AvailableUntil)
-                .HasColumnType("datetime")
-                .HasColumnName("availableUntil");
+            entity.Property(e => e.AvailabeOn).HasColumnName("availabeOn");
+            entity.Property(e => e.AvailableUntil).HasColumnName("availableUntil");
             entity.Property(e => e.CourseId).HasColumnName("courseID");
             entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("datetime")
                 .HasColumnName("createdOn");
             entity.Property(e => e.QuestionId).HasColumnName("questionID");
-            entity.Property(e => e.QuizPwd)
-                .HasMaxLength(255)
-                .HasColumnName("quizPwd");
             entity.Property(e => e.QuizTitle)
                 .HasMaxLength(45)
                 .HasColumnName("quizTitle");
             entity.Property(e => e.SectionId).HasColumnName("sectionID");
+            entity.Property(e => e.TimeEnd)
+                .HasColumnType("time")
+                .HasColumnName("timeEnd");
+            entity.Property(e => e.TimeStart)
+                .HasColumnType("time")
+                .HasColumnName("timeStart");
 
             entity.HasOne(d => d.Course).WithMany(p => p.Quizes)
                 .HasForeignKey(d => d.CourseId)
