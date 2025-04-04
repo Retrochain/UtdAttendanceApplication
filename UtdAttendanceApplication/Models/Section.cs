@@ -3,31 +3,33 @@ using System.Collections.Generic;
 
 namespace UtdAttendanceApplication.Models;
 
-public partial class Course
+public partial class Section
 {
+    public int SectionId { get; set; }
+
     public int CourseId { get; set; }
 
-    public string CourseName { get; set; } = null!;
+    public int SectionCode { get; set; }
 
-    public int CourseCode { get; set; }
+    public TimeOnly StartTime { get; set; }
 
-    public int ProfId { get; set; }
+    public TimeOnly EndTime { get; set; }
 
-    public string ProfName { get; set; } = null!;
+    public DateOnly StartDate { get; set; }
 
-    public DateTime? CreatedOn { get; set; }
+    public DateOnly EndDate { get; set; }
+
+    public int Duration { get; set; }
 
     public virtual ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
+
+    public virtual Course Course { get; set; } = null!;
 
     public virtual ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
 
     public virtual ICollection<Password> Passwords { get; set; } = new List<Password>();
 
-    public virtual Professor Prof { get; set; } = null!;
-
     public virtual ICollection<QuizBank> QuizBanks { get; set; } = new List<QuizBank>();
 
     public virtual ICollection<Quize> Quizes { get; set; } = new List<Quize>();
-
-    public virtual ICollection<Section> Sections { get; set; } = new List<Section>();
 }

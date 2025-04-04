@@ -11,7 +11,15 @@ public partial class QuizBank
 
     public int CourseId { get; set; }
 
+    public int QuestionId { get; set; }
+
+    public int SectionId { get; set; }
+
     public virtual Course Course { get; set; } = null!;
 
+    public virtual QuizQuestion Question { get; set; } = null!;
+
     public virtual ICollection<QuizQuestion> QuizQuestions { get; set; } = new List<QuizQuestion>();
+
+    public virtual Section Section { get; set; } = null!;
 }
