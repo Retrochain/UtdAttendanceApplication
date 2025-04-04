@@ -3,19 +3,30 @@
 @{
     ViewData["Title"] = "Quiz";
 }
+
+<!--
+    Written by Akshaan Singh, Dylan Hua, Ricardo Vargas
+    For CS 4485.0W1, Final Project, Starting 04/04/2025
+
+    This is the quiz page of the website, where the students will take and submit the quiz.
+-->
 <h1>@ViewData["Title"]</h1>
 
 @using (Html.BeginForm("SubmitQuiz", "Quiz", FormMethod.Post))
 {
     @Html.HiddenFor(m => m.QuizBankId)
 
+    <!-- Loop through each question in the quiz -->
     @for (int i = 0; i < Model.Questions.Count; i++)
     {
+        <!-- Display the quiz question -->
         <div class="mb-4">
             <h4>@Model.Questions[i].QuestionText</h4>
 
+            <!-- Loop through each option for the current question -->
             @foreach (var option in Model.Questions[i].Options)
             {
+                <!-- Display each question option -->
                 <div class="form-check">
                     <input type="radio"
                            name="Questions[@i].SelectedOptionId"
@@ -31,6 +42,6 @@
             @Html.HiddenFor(m => m.Questions[i].QuestionId)
         </div>
     }
-
-    <button type="submit" class="btn btn-primary">Submit</button>
+    <!-- Submit button to send the form -->
+        <button type="submit" class="btn btn-primary">Submit</button>
 }
