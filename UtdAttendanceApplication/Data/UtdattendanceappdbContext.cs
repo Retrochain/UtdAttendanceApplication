@@ -6,7 +6,6 @@ namespace UtdAttendanceApplication.Data;
 public partial class UtdattendanceappdbContext : DbContext
 {
     private readonly IConfiguration _configuration;
-
     public UtdattendanceappdbContext(DbContextOptions<UtdattendanceappdbContext> options, IConfiguration configuration)
         : base(options)
     {
@@ -19,6 +18,8 @@ public partial class UtdattendanceappdbContext : DbContext
 
     public virtual DbSet<Enrollment> Enrollments { get; set; }
 
+    public virtual DbSet<Password> Passwords { get; set; }
+
     public virtual DbSet<Professor> Professors { get; set; }
 
     public virtual DbSet<QuestionOption> QuestionOptions { get; set; }
@@ -29,6 +30,8 @@ public partial class UtdattendanceappdbContext : DbContext
 
     public virtual DbSet<Quize> Quizes { get; set; }
 
+    public virtual DbSet<Section> Sections { get; set; }
+
     public virtual DbSet<Student> Students { get; set; }
 
     public virtual DbSet<StudentAnswer> StudentAnswers { get; set; }
@@ -37,8 +40,8 @@ public partial class UtdattendanceappdbContext : DbContext
     {
         if (!optionsBuilder.IsConfigured)
         {
-            var connectionString = _configuration.GetConnectionString("DefaultConnection");
-            optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+            var connstr = _configuration.GetConnectionString("DefaultConnection");
+            optionsBuilder.UseMySql(connstr, ServerVersion.Parse("8.0.40-mysql"));
             throw new InvalidOperationException("Database connection string is not configured");
         }
     }
@@ -61,6 +64,8 @@ public partial class UtdattendanceappdbContext : DbContext
 
             entity.HasIndex(e => e.QuizId, "attendanceQuizID_idx");
 
+            entity.HasIndex(e => e.SectionId, "attendanceSectionID_idx");
+
             entity.HasIndex(e => e.StudentId, "attendanceStudentID_idx");
 
             entity.Property(e => e.AttendanceId).HasColumnName("attendanceID");
@@ -69,6 +74,7 @@ public partial class UtdattendanceappdbContext : DbContext
                 .HasColumnName("attendanceStatus");
             entity.Property(e => e.CourseId).HasColumnName("courseID");
             entity.Property(e => e.QuizId).HasColumnName("quizID");
+            entity.Property(e => e.SectionId).HasColumnName("sectionID");
             entity.Property(e => e.StudentId).HasColumnName("studentID");
             entity.Property(e => e.Time)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
@@ -82,6 +88,10 @@ public partial class UtdattendanceappdbContext : DbContext
             entity.HasOne(d => d.Quiz).WithMany(p => p.Attendances)
                 .HasForeignKey(d => d.QuizId)
                 .HasConstraintName("attendanceQuizID");
+
+            entity.HasOne(d => d.Section).WithMany(p => p.Attendances)
+                .HasForeignKey(d => d.SectionId)
+                .HasConstraintName("attendanceSectionID");
 
             entity.HasOne(d => d.Student).WithMany(p => p.Attendances)
                 .HasPrincipalKey(p => p.StudentId)
@@ -130,10 +140,13 @@ public partial class UtdattendanceappdbContext : DbContext
 
             entity.HasIndex(e => e.EnrollmentId, "enrollmentId_UNIQUE").IsUnique();
 
-            entity.HasIndex(e => e.StudentId, "studentId_idx");
+            entity.HasIndex(e => e.SectionId, "sectionID_idx");
+
+            entity.HasIndex(e => e.StudentId, "studentID_idx");
 
             entity.Property(e => e.EnrollmentId).HasColumnName("enrollmentId");
             entity.Property(e => e.CourseId).HasColumnName("courseID");
+            entity.Property(e => e.SectionId).HasColumnName("sectionID");
             entity.Property(e => e.StudentId).HasColumnName("studentID");
 
             entity.HasOne(d => d.Course).WithMany(p => p.Enrollments)
@@ -141,11 +154,55 @@ public partial class UtdattendanceappdbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("courseID");
 
+            entity.HasOne(d => d.Section).WithMany(p => p.Enrollments)
+                .HasForeignKey(d => d.SectionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("sectionID");
+
             entity.HasOne(d => d.Student).WithMany(p => p.Enrollments)
                 .HasPrincipalKey(p => p.StudentId)
                 .HasForeignKey(d => d.StudentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("studentID");
+        });
+
+        modelBuilder.Entity<Password>(entity =>
+        {
+            entity.HasKey(e => e.PasswordId).HasName("PRIMARY");
+
+            entity.ToTable("passwords");
+
+            entity.HasIndex(e => e.CourseId, "passCourseID_idx");
+
+            entity.HasIndex(e => e.QuizId, "passQuizID_idx");
+
+            entity.HasIndex(e => e.SectionId, "passSectionID_idx");
+
+            entity.Property(e => e.PasswordId).HasColumnName("passwordID");
+            entity.Property(e => e.AvailableOn)
+                .HasColumnType("datetime")
+                .HasColumnName("availableOn");
+            entity.Property(e => e.AvailableUntil)
+                .HasColumnType("datetime")
+                .HasColumnName("availableUntil");
+            entity.Property(e => e.CourseId).HasColumnName("courseID");
+            entity.Property(e => e.QuizId).HasColumnName("quizID");
+            entity.Property(e => e.SectionId).HasColumnName("sectionID");
+
+            entity.HasOne(d => d.Course).WithMany(p => p.Passwords)
+                .HasForeignKey(d => d.CourseId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("passCourseID");
+
+            entity.HasOne(d => d.Quiz).WithMany(p => p.Passwords)
+                .HasForeignKey(d => d.QuizId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("passQuizID");
+
+            entity.HasOne(d => d.Section).WithMany(p => p.Passwords)
+                .HasForeignKey(d => d.SectionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("passSectionID");
         });
 
         modelBuilder.Entity<Professor>(entity =>
@@ -223,16 +280,32 @@ public partial class UtdattendanceappdbContext : DbContext
 
             entity.HasIndex(e => e.QuizBankId, "quizBankID_UNIQUE").IsUnique();
 
+            entity.HasIndex(e => e.QuestionId, "quizBankQuestionID_idx");
+
+            entity.HasIndex(e => e.SectionId, "quizBankSectionID_idx");
+
             entity.Property(e => e.QuizBankId).HasColumnName("quizBankID");
             entity.Property(e => e.CourseId).HasColumnName("courseID");
+            entity.Property(e => e.QuestionId).HasColumnName("questionID");
             entity.Property(e => e.QuizTitle)
                 .HasMaxLength(255)
                 .HasColumnName("quizTitle");
+            entity.Property(e => e.SectionId).HasColumnName("sectionID");
 
             entity.HasOne(d => d.Course).WithMany(p => p.QuizBanks)
                 .HasForeignKey(d => d.CourseId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("quizBankCourseID");
+
+            entity.HasOne(d => d.Question).WithMany(p => p.QuizBanks)
+                .HasForeignKey(d => d.QuestionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("quizBankQuestionID");
+
+            entity.HasOne(d => d.Section).WithMany(p => p.QuizBanks)
+                .HasForeignKey(d => d.SectionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("quizBankSectionID");
         });
 
         modelBuilder.Entity<QuizQuestion>(entity =>
@@ -271,6 +344,10 @@ public partial class UtdattendanceappdbContext : DbContext
 
             entity.HasIndex(e => e.QuizId, "quizID_UNIQUE").IsUnique();
 
+            entity.HasIndex(e => e.QuestionId, "quizQuestionID_idx");
+
+            entity.HasIndex(e => e.SectionId, "quizSectionID_idx");
+
             entity.Property(e => e.QuizId).HasColumnName("quizID");
             entity.Property(e => e.AvailabeOn)
                 .HasColumnType("datetime")
@@ -283,17 +360,55 @@ public partial class UtdattendanceappdbContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("datetime")
                 .HasColumnName("createdOn");
+            entity.Property(e => e.QuestionId).HasColumnName("questionID");
             entity.Property(e => e.QuizPwd)
                 .HasMaxLength(255)
                 .HasColumnName("quizPwd");
             entity.Property(e => e.QuizTitle)
                 .HasMaxLength(45)
                 .HasColumnName("quizTitle");
+            entity.Property(e => e.SectionId).HasColumnName("sectionID");
 
             entity.HasOne(d => d.Course).WithMany(p => p.Quizes)
                 .HasForeignKey(d => d.CourseId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("quizCourseID");
+
+            entity.HasOne(d => d.Question).WithMany(p => p.Quizes)
+                .HasForeignKey(d => d.QuestionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("quizQuestionID");
+
+            entity.HasOne(d => d.Section).WithMany(p => p.Quizes)
+                .HasForeignKey(d => d.SectionId)
+                .HasConstraintName("quizSectionID");
+        });
+
+        modelBuilder.Entity<Section>(entity =>
+        {
+            entity.HasKey(e => e.SectionId).HasName("PRIMARY");
+
+            entity.ToTable("sections");
+
+            entity.HasIndex(e => e.CourseId, "courseSectionID_idx");
+
+            entity.Property(e => e.SectionId).HasColumnName("sectionID");
+            entity.Property(e => e.CourseId).HasColumnName("courseID");
+            entity.Property(e => e.Duration).HasColumnName("duration");
+            entity.Property(e => e.EndDate).HasColumnName("endDate");
+            entity.Property(e => e.EndTime)
+                .HasColumnType("time")
+                .HasColumnName("endTime");
+            entity.Property(e => e.SectionCode).HasColumnName("sectionCode");
+            entity.Property(e => e.StartDate).HasColumnName("startDate");
+            entity.Property(e => e.StartTime)
+                .HasColumnType("time")
+                .HasColumnName("startTime");
+
+            entity.HasOne(d => d.Course).WithMany(p => p.Sections)
+                .HasForeignKey(d => d.CourseId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("courseSectionID");
         });
 
         modelBuilder.Entity<Student>(entity =>
@@ -319,22 +434,12 @@ public partial class UtdattendanceappdbContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("datetime")
                 .HasColumnName("createdOn");
-            entity.Property(e => e.Email)
-                .HasMaxLength(45)
-                .HasColumnName("email");
             entity.Property(e => e.FirstName)
                 .HasMaxLength(45)
                 .HasColumnName("firstName");
             entity.Property(e => e.LastName)
                 .HasMaxLength(45)
                 .HasColumnName("lastName");
-            entity.Property(e => e.MiddleInit)
-                .HasMaxLength(1)
-                .IsFixedLength()
-                .HasColumnName("middleInit");
-            entity.Property(e => e.Password)
-                .HasMaxLength(255)
-                .HasColumnName("password");
             entity.Property(e => e.UserName)
                 .HasMaxLength(45)
                 .HasColumnName("userName");

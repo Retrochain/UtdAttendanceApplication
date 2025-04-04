@@ -11,7 +11,11 @@ public partial class Enrollment
 
     public int StudentId { get; set; }
 
+    public int SectionId { get; set; }
+
     public virtual Course Course { get; set; } = null!;
+
+    public virtual Section Section { get; set; } = null!;
 
     public virtual Student Student { get; set; } = null!;
 }

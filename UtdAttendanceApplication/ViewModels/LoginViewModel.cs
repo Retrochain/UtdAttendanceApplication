@@ -7,7 +7,6 @@ namespace UtdAttendanceApplication.ViewModels
         [Required]
         public string UtdId { get; set; } = null!;
 
-
         public string? Password { get; set; }
     }
 }
