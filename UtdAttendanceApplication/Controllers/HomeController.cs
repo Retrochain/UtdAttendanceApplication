@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
-using UtdAttendanceApplication.Data;
+using UtdAttendanceApplication.Models;
 using UtdAttendanceApplication.ViewModels;
 
 namespace UtdAttendanceApplication.Controllers;
@@ -58,7 +58,12 @@ public class HomeController : Controller
             // If the student exists, then we move forward
             if (stdnt != null)
             {
+                // We now check if the password exists in the database
+                var stdntPass = _context.Passwords.Where(p => p.Pwd == model.Password).FirstOrDefault();
+                if (stdntPass != null)
+                {
 
+                }
             }
             else
             {

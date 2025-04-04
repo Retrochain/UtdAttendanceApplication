@@ -13,6 +13,8 @@ public partial class Password
 
     public int QuizId { get; set; }
 
+    public string? Pwd { get; set; }
+
     public DateTime? AvailableOn { get; set; }
 
     public DateTime? AvailableUntil { get; set; }

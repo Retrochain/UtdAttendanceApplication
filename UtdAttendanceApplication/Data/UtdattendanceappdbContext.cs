@@ -1,15 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using UtdAttendanceApplication.Models;
 
-namespace UtdAttendanceApplication.Data;
+namespace UtdAttendanceApplication.Models;
 
 public partial class UtdattendanceappdbContext : DbContext
 {
-    private readonly IConfiguration _configuration;
-    public UtdattendanceappdbContext(DbContextOptions<UtdattendanceappdbContext> options, IConfiguration configuration)
+    public UtdattendanceappdbContext()
+    {
+    }
+
+    public UtdattendanceappdbContext(DbContextOptions<UtdattendanceappdbContext> options)
         : base(options)
     {
-        _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
 
     public virtual DbSet<Attendance> Attendances { get; set; }
@@ -37,14 +38,8 @@ public partial class UtdattendanceappdbContext : DbContext
     public virtual DbSet<StudentAnswer> StudentAnswers { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        if (!optionsBuilder.IsConfigured)
-        {
-            var connstr = _configuration.GetConnectionString("DefaultConnection");
-            optionsBuilder.UseMySql(connstr, ServerVersion.Parse("8.0.40-mysql"));
-            throw new InvalidOperationException("Database connection string is not configured");
-        }
-    }
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseMySql("server=utdattendanceappdb.c3s2mqc0kuff.us-east-2.rds.amazonaws.com;port=3306;database=utdattendanceappdb;user=admin;password=\"W#t=r%2Q25!!\"", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.40-mysql"));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -186,6 +181,9 @@ public partial class UtdattendanceappdbContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("availableUntil");
             entity.Property(e => e.CourseId).HasColumnName("courseID");
+            entity.Property(e => e.Pwd)
+                .HasMaxLength(45)
+                .HasColumnName("pwd");
             entity.Property(e => e.QuizId).HasColumnName("quizID");
             entity.Property(e => e.SectionId).HasColumnName("sectionID");
 
