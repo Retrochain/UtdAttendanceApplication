@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
-using UtdAttendanceApplication.Models;
+using UtdAttendanceApplication.Data;
 using UtdAttendanceApplication.ViewModels;
 
 namespace UtdAttendanceApplication.Controllers;
@@ -63,6 +63,11 @@ public class HomeController : Controller
                 if (stdntPass != null)
                 {
 
+                }
+                else
+                {
+                    // Otherwise we tell the user that the password doesn't exist
+                    ModelState.AddModelError("Password", "Password not found, please make sure the password is correct");
                 }
             }
             else

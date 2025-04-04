@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using UtdAttendanceApplication.Models;
 
-namespace UtdAttendanceApplication.Models;
+namespace UtdAttendanceApplication.Data;
 
 public partial class UtdattendanceappdbContext : DbContext
 {
