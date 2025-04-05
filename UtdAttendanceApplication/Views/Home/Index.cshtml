@@ -12,13 +12,34 @@
     using their UTD ID and a professor provided password. Once all the checks have been done,
     the user is allowed to enter into the website and answer the assigned quiz questions. 
 -->
+<!--
+    Written by Daniel Kirfman 
+    For CS 4485.0W1, Final Project, Starting 04/05/2025
+
+    UI design added for the login screen and shared nav bar. Design style inspired by other UTD web applications. 
+-->
+
 
 <div class="text-center align-items-center">
     <h1 class="display-4">Login</h1>
-        <div class="row">
-            <div class="col-md-4">
+
+    <style>
+        [class*= "col"]
+        {
+            padding: 1rem;
+            background-color: #114634;
+            border: 2px solid orange; 
+            color: white;
+        }
+    </style>
+
+        <div class="container d-flex align-items-center justify-content-center" style="padding-top: 80px;">
+            <div class="col-md-8" style=" max-width: 700px;">
+
+
                 <form asp-action="Index">
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
                     <div class="form-group">
                         <label asp-for="UtdId" class="control-label">UTD ID</label>
                         <input asp-for="UtdId" class="form-control" />

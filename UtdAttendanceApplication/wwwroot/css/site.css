@@ -20,3 +20,11 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+.bg-UTDorange {
+    background-color: #ec7524 !important; 
+}
+
+.bg-UTDgreen {
+    background-color: #114634 !important;
+}
