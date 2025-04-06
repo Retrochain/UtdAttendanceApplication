@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace UtdAttendanceApplication.Models;
 
-namespace UtdAttendanceApplication.Models;
-
-public partial class Quize
+public partial class Quizes
 {
     public int QuizId { get; set; }
 

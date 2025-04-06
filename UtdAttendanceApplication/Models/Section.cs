@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace UtdAttendanceApplication.Models;
+﻿namespace UtdAttendanceApplication.Models;
 
 public partial class Section
 {
@@ -31,5 +28,5 @@ public partial class Section
 
     public virtual ICollection<QuizBank> QuizBanks { get; set; } = new List<QuizBank>();
 
-    public virtual ICollection<Quize> Quizes { get; set; } = new List<Quize>();
+    public virtual ICollection<Quizes> Quizes { get; set; } = new List<Quizes>();
 }

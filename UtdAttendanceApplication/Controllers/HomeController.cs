@@ -76,7 +76,7 @@ public class HomeController : Controller
                             var stdntEnroll = _context.Enrollments.Where(e => e.StudentId == stdnt.StudentId).FirstOrDefault();
                             if ((stdntEnroll?.CourseId == stdntPassCourse.CourseId) && (stdntEnroll?.SectionId == stdntPassSection.SectionId))
                             {
-                                return RedirectToAction("Quiz");
+                                return RedirectToAction("Index");
                             }
                             else
                             {

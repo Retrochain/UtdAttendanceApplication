@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace UtdAttendanceApplication.Models;
+﻿namespace UtdAttendanceApplication.Models;
 
 public partial class Attendance
 {
@@ -21,7 +18,7 @@ public partial class Attendance
 
     public virtual Course? Course { get; set; }
 
-    public virtual Quize? Quiz { get; set; }
+    public virtual Quizes? Quiz { get; set; }
 
     public virtual Section? Section { get; set; }
 

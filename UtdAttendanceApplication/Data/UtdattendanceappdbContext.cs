@@ -30,7 +30,7 @@ public partial class UtdattendanceappdbContext : DbContext
 
     public virtual DbSet<QuizQuestion> QuizQuestions { get; set; }
 
-    public virtual DbSet<Quize> Quizes { get; set; }
+    public virtual DbSet<Quizes> Quizes { get; set; }
 
     public virtual DbSet<Section> Sections { get; set; }
 
@@ -328,7 +328,7 @@ public partial class UtdattendanceappdbContext : DbContext
                 .HasColumnName("questionText");
         });
 
-        modelBuilder.Entity<Quize>(entity =>
+        modelBuilder.Entity<Quizes>(entity =>
         {
             entity.HasKey(e => e.QuizId).HasName("PRIMARY");
 
