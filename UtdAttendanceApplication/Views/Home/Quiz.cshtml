@@ -1,47 +1,53 @@
 ﻿@model UtdAttendanceApplication.ViewModels.QuizViewModel
 
 @{
-    ViewData["Title"] = "Quiz";
+    ViewData["Title"] = "Take Quiz";
 }
 
-<!--
-    Written by Akshaan Singh, Dylan Hua, Ricardo Vargas
-    For CS 4485.0W1, Final Project, Starting 04/04/2025
+<div class="text-center align-items-center">
+    <h1 class="display-4">Quiz</h1>
 
-    This is the quiz page of the website, where the students will take and submit the quiz.
--->
-<h1>@ViewData["Title"]</h1>
+    <div class="container d-flex align-items-center justify-content-center" style="padding-top: 80px;">
+        <div class="col-md-8" style="max-width: 700px;">
 
-@using (Html.BeginForm("SubmitQuiz", "Quiz", FormMethod.Post))
-{
-    @Html.HiddenFor(m => m.QuizBankId)
+            <form asp-action="SubmitQuiz" asp-controller="Home" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                @Html.AntiForgeryToken()
 
-    <!-- Loop through each question in the quiz -->
-    @for (int i = 0; i < Model.Questions.Count; i++)
-    {
-        <!-- Display the quiz question -->
-        <div class="mb-4">
-            <h4>@Model.Questions[i].QuestionText</h4>
+                @for (int i = 0; i < Model.Questions.Count; i++)
+                {
+                    <div class="form-group mb-4">
+                        <p><strong>Question @(@i + 1):</strong> @Model.Questions[i].QuestionText</p>
 
-            <!-- Loop through each option for the current question -->
-            @foreach (var option in Model.Questions[i].Options)
-            {
-                <!-- Display each question option -->
-                <div class="form-check">
-                    <input type="radio"
-                           name="Questions[@i].SelectedOptionId"
-                           value="@option.OptionId"
-                           class="form-check-input"
-                           id="opt-@option.OptionId" />
-                    <label class="form-check-label" for="opt-@option.OptionId">
-                        @option.OptionText
-                    </label>
+                        @foreach (var option in Model.Questions[i].Options)
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input"
+                                       type="radio"
+                                       name="Questions[@i].SelectedOptionId"
+                                       value="@option.OptionId"
+                                       id="option_@option.OptionId"
+                                @((Model.Questions[i].SelectedOptionId == option.OptionId) ? "checked" : "") />
+                                <label class="form-check-label" for="option_@option.OptionId">
+                                    @option.OptionText
+                                </label>
+                            </div>
+                        }
+
+                        @Html.HiddenFor(model => model.Questions[i].QuestionId)
+                    </div>
+                }
+
+                <!-- Hidden fields for routing data -->
+                <input type="hidden" name="quizId" value="@ViewBag.QuizId" />
+                <input type="hidden" name="courseId" value="@ViewBag.CourseId" />
+                <input type="hidden" name="sectionId" value="@ViewBag.SectionId" />
+
+                <div class="form-group">
+                    <input type="submit" value="Submit Quiz" class="btn btn-success" />
                 </div>
-            }
+            </form>
 
-            @Html.HiddenFor(m => m.Questions[i].QuestionId)
         </div>
-    }
-    <!-- Submit button to send the form -->
-        <button type="submit" class="btn btn-primary">Submit</button>
-}
+    </div>
+</div>

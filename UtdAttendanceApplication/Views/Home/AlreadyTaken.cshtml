@@ -1,0 +1,15 @@
+﻿@{
+    ViewData["Title"] = "Already Taken";
+}
+
+<div class="container text-center mt-5">
+    <div class="alert alert-warning p-4">
+        <h2>Quiz Already Taken</h2>
+        <p>You have already submitted this quiz.</p>
+        <p>Course: @ViewBag.CourseName</p>
+        <p>Quiz: @ViewBag.QuizTitle</p>
+        <div class="mt-3">
+            <a asp-action="Index" class="btn btn-primary">Return to Login</a>
+        </div>
+    </div>
+</div>
