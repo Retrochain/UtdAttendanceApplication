@@ -1,14 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
-
 using UtdAttendanceApplication.Models;
 
 namespace UtdAttendanceApplication.Data;
 
-public partial class UtdattendanceappdbContext : DbContext
+public partial class UtdAttendanceAppContext : DbContext
 {
     private readonly IConfiguration _configuration;
 
-    public UtdattendanceappdbContext(DbContextOptions<UtdattendanceappdbContext> options, IConfiguration configuration)
+    public UtdAttendanceAppContext(DbContextOptions<UtdAttendanceAppContext> options, IConfiguration configuration)
         : base(options)
     {
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
@@ -319,6 +318,8 @@ public partial class UtdattendanceappdbContext : DbContext
 
             entity.ToTable("quizQuestions");
 
+            entity.HasIndex(e => e.QuizId, "questionForQuizID_idx");
+
             entity.HasIndex(e => e.QuestionId, "questionID_UNIQUE").IsUnique();
 
             entity.Property(e => e.QuestionId).HasColumnName("questionID");
@@ -326,6 +327,12 @@ public partial class UtdattendanceappdbContext : DbContext
             entity.Property(e => e.QuestionText)
                 .HasColumnType("text")
                 .HasColumnName("questionText");
+            entity.Property(e => e.QuizId).HasColumnName("quizID");
+
+            entity.HasOne(d => d.Quiz).WithMany(p => p.QuizQuestions)
+                .HasForeignKey(d => d.QuizId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("questionForQuizID");
         });
 
         modelBuilder.Entity<Quizes>(entity =>
@@ -338,8 +345,6 @@ public partial class UtdattendanceappdbContext : DbContext
 
             entity.HasIndex(e => e.QuizId, "quizID_UNIQUE").IsUnique();
 
-            entity.HasIndex(e => e.QuestionId, "quizQuestionID_idx");
-
             entity.HasIndex(e => e.SectionId, "quizSectionID_idx");
 
             entity.Property(e => e.QuizId).HasColumnName("quizID");
@@ -350,7 +355,6 @@ public partial class UtdattendanceappdbContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("datetime")
                 .HasColumnName("createdOn");
-            entity.Property(e => e.QuestionId).HasColumnName("questionID");
             entity.Property(e => e.QuizTitle)
                 .HasMaxLength(45)
                 .HasColumnName("quizTitle");
@@ -366,11 +370,6 @@ public partial class UtdattendanceappdbContext : DbContext
                 .HasForeignKey(d => d.CourseId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("quizCourseID");
-
-            entity.HasOne(d => d.Question).WithMany(p => p.Quizes)
-                .HasForeignKey(d => d.QuestionId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("quizQuestionID");
 
             entity.HasOne(d => d.Section).WithMany(p => p.Quizes)
                 .HasForeignKey(d => d.SectionId)

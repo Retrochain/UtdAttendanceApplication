@@ -35,9 +35,9 @@ public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
 
-    private readonly UtdattendanceappdbContext _context;
+    private readonly UtdAttendanceAppContext _context;
 
-    public HomeController(ILogger<HomeController> logger, UtdattendanceappdbContext dbContext)
+    public HomeController(ILogger<HomeController> logger, UtdAttendanceAppContext dbContext)
     {
         _logger = logger;
         _context = dbContext;

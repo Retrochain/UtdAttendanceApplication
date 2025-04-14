@@ -10,7 +10,7 @@ namespace UtdAttendanceApplication
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddDbContext<UtdattendanceappdbContext>(options =>
+            builder.Services.AddDbContext<UtdAttendanceAppContext>(options =>
             options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
             ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))));
 

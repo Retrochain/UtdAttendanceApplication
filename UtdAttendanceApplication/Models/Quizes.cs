@@ -8,8 +8,6 @@ public partial class Quizes
 
     public int? SectionId { get; set; }
 
-    public int QuestionId { get; set; }
-
     public string QuizTitle { get; set; } = null!;
 
     public DateOnly? AvailabeOn { get; set; }
@@ -28,7 +26,7 @@ public partial class Quizes
 
     public virtual ICollection<Password> Passwords { get; set; } = new List<Password>();
 
-    public virtual QuizQuestion Question { get; set; } = null!;
+    public virtual ICollection<QuizQuestion> QuizQuestions { get; set; } = new List<QuizQuestion>();
 
     public virtual Section? Section { get; set; }
 
