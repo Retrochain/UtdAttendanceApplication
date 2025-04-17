@@ -136,34 +136,38 @@ public class HomeController : Controller
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
 
-    //This method will load the quiz for the student to take
+    //This method will load and display the quiz for the student to take
     /* First the method validates that the student is authenticated and found in the database, 
-     * then loads the appropriate quiz. The method takes in the ID of the quiz to be loaded.
+     * then it validates the quiz is currently available and checks if the student has already taken the quiz.
+     * After passing the validation checks the quiz is displayed to the student.
+     * The method takes in the ID of the quiz to be loaded.
      * The view containing the quiz is returned for the student to take.
      */
+
     public async Task<IActionResult> Quiz(int id)
     {
         // Get the student's UTD ID from claims (stored during login)
-        // Used to identify which student is taking the quiz
+        // This is used to identify which student is attempting to take the quiz
         var utdId = User.FindFirstValue("UtdId");
         if (string.IsNullOrEmpty(utdId))
         {
-            // If UTD ID is not found in primary claim then we try getting it from the Name claim as a fallback
+            // If the primary claim is not found then we use the Name claim as a backup
+            // It is a secondary way to identify the student
             utdId = User.Identity?.Name;
-
             if (string.IsNullOrEmpty(utdId))
             {
-                // If we cannot identify the student, they will need to login in again
+                // If we are still unable to find the student then they will need to login again
                 return RedirectToAction("Index");
             }
         }
+
         // Look up the student in the database using their UTD ID
         var student = await _context.Students
             .FirstOrDefaultAsync(s => s.UtdId == utdId);
 
         if (student == null)
         {
-            // Student was not found in the database and is returned to login
+            // If the student doesn't exist in the database then they are returned to login
             ModelState.AddModelError("", "Student not found. Please try logging in again.");
             return RedirectToAction("Index");
         }
@@ -176,69 +180,54 @@ public class HomeController : Controller
 
         if (quiz == null)
         {
-            // Quiz not found, return to login page
+            // If the quiz does not exist then the student is returned to login page
             ModelState.AddModelError("", "Quiz not found.");
             return RedirectToAction("Index");
         }
 
-        // Validate that the quiz is currently available based on its scheduled date
-        // Ensures quiz can only be taken during the specified time window
+        // Validate that the quiz is currently available
+        // This is to ensure students can only take quizzes within the period specicified by the professor
         var today = DateOnly.FromDateTime(DateTime.Now);
         if (today < quiz.AvailabeOn || today > quiz.AvailableUntil)
         {
-            // If the quiz is not within the avaiability window we show an error message
+            // Quiz is not currently available, display the closed quiz view
+            // Quiz is not currently available, display the closed quiz view
             ViewBag.ErrorMessage = "This quiz is not currently available.";
             ViewBag.QuizTitle = quiz.QuizTitle;
             ViewBag.CourseName = quiz.Course.CourseName;
             ViewBag.SectionCode = quiz.Section?.SectionCode.ToString() ?? "N/A";
             return View("QuizClosed");
+
         }
 
         // Check if student has already taken this quiz
+        // This prevents duplicate attendance entries for data integrity
         var alreadyTaken = await _context.Attendances
             .AnyAsync(a => a.StudentId == student.StudentId && a.QuizId == id);
 
         if (alreadyTaken)
         {
+            // If the student already took the quiz the already taken view is returned
             ViewBag.QuizTitle = quiz.QuizTitle;
             ViewBag.CourseName = quiz.Course.CourseName;
             ViewBag.SectionCode = quiz.Section?.SectionCode.ToString() ?? "N/A";
             return View("AlreadyTaken");
         }
 
-        // Get quiz questions (0 - 3 questions)
-        var questions = new List<QuizQuestion>();
-
-        // First add the main question linked directly to the quiz
-        var mainQuestion = await _context.QuizQuestions
-            .Include(q => q.QuestionOptions)
-            .FirstOrDefaultAsync(q => q.QuestionId == quiz.QuestionId);
-
-        if (mainQuestion != null)
-        {
-            questions.Add(mainQuestion);
-        }
-
-        // Then try to find additional questions from quiz banks for the selected quiz
-        var additionalQuestions = await _context.QuizQuestions
-            .Include(q => q.QuestionOptions)
-            .Where(q => _context.QuizBanks.Any(
-                qb => qb.CourseId == quiz.CourseId &&
-                      qb.SectionId == quiz.SectionId &&
-                      qb.QuestionId == q.QuestionId &&
-                      q.QuestionId != quiz.QuestionId)) // Exclude the main question
-            .Take(3 - questions.Count) // Take enough to have a total of 3
+        // Get all questions directly associated with this quiz (0-3 questions)
+        // Questions reference the quiz they belong to through their quiz id
+        var questions = await _context.QuizQuestions
+            .Include(q => q.QuestionOptions) // inclused the question options
+            .Where(q => q.QuizId == id)  // Get questions only for this specific quiz
+            .Take(3)                     // Maximum 3 questions
             .ToListAsync();
 
-
-        questions.AddRange(additionalQuestions);
-
-
         // Create list of QuizQuestionViewModel objects
+        // Converts database entities to view models for display
         var questionViewModels = new List<QuizQuestionViewModel>();
         foreach (var question in questions)
         {
-            // Create view model for each question with its options
+            // Creates view model for each question with its associated options
             var questionViewModel = new QuizQuestionViewModel
             {
                 QuestionId = question.QuestionId,
@@ -253,13 +242,13 @@ public class HomeController : Controller
             questionViewModels.Add(questionViewModel);
         }
 
-        // Create the view model with all necessary data for the quiz view
+        // Create the view model with all necessary data for rendering the quiz
         var viewModel = new QuizViewModel
         {
             CourseName = quiz.Course.CourseName,
             CourseSection = quiz.Section?.SectionCode ?? 0,
             ProfName = quiz.Course.ProfName,
-            QuizBankId = quiz.QuestionId,
+            QuizBankId = 0,
             Questions = questionViewModels
         };
 
@@ -270,11 +259,11 @@ public class HomeController : Controller
         ViewBag.ExpiresAt = quiz.AvailableUntil;
 
         // Store IDs needed for form processing in ViewBag
-        // These will be submitted back when the form is posted
         ViewBag.QuizId = quiz.QuizId;
         ViewBag.CourseId = quiz.CourseId;
         ViewBag.SectionId = quiz.SectionId;
 
+        // Returns quiz view with populated view model
         return View(viewModel);
     }
 
@@ -408,4 +397,5 @@ public class HomeController : Controller
     }
 
 }
+
 
