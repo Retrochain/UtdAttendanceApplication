@@ -1,4 +1,7 @@
-﻿namespace UtdAttendanceApplication.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace UtdAttendanceApplication.Models;
 
 public partial class Password
 {
@@ -18,7 +21,7 @@ public partial class Password
 
     public virtual Course Course { get; set; } = null!;
 
-    public virtual Quizes Quiz { get; set; } = null!;
+    public virtual Quiz Quiz { get; set; } = null!;
 
     public virtual Section Section { get; set; } = null!;
 }

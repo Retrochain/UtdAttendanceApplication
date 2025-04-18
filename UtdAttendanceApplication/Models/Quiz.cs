@@ -1,6 +1,9 @@
-﻿namespace UtdAttendanceApplication.Models;
+﻿using System;
+using System.Collections.Generic;
 
-public partial class Quizes
+namespace UtdAttendanceApplication.Models;
+
+public partial class Quiz
 {
     public int QuizId { get; set; }
 
@@ -10,15 +13,13 @@ public partial class Quizes
 
     public string QuizTitle { get; set; } = null!;
 
-    public DateOnly? AvailabeOn { get; set; }
+    public int QuizBankId { get; set; }
 
-    public DateOnly? AvailableUntil { get; set; }
+    public DateTime? AvailableOn { get; set; }
+
+    public DateTime? AvailableUntil { get; set; }
 
     public DateTime? CreatedOn { get; set; }
-
-    public TimeOnly? TimeStart { get; set; }
-
-    public TimeOnly? TimeEnd { get; set; }
 
     public virtual ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
 
@@ -26,7 +27,7 @@ public partial class Quizes
 
     public virtual ICollection<Password> Passwords { get; set; } = new List<Password>();
 
-    public virtual ICollection<QuizQuestion> QuizQuestions { get; set; } = new List<QuizQuestion>();
+    public virtual QuizBank QuizBank { get; set; } = null!;
 
     public virtual Section? Section { get; set; }
 

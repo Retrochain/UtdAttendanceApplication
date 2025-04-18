@@ -11,6 +11,8 @@ public partial class QuestionOption
 
     public string OptionText { get; set; } = null!;
 
+    public int? OptionLabel { get; set; }
+
     public virtual QuizQuestion? Question { get; set; }
 
     public virtual ICollection<StudentAnswer> StudentAnswers { get; set; } = new List<StudentAnswer>();

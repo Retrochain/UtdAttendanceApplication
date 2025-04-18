@@ -1,4 +1,7 @@
-﻿namespace UtdAttendanceApplication.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace UtdAttendanceApplication.Models;
 
 public partial class StudentAnswer
 {
@@ -20,7 +23,7 @@ public partial class StudentAnswer
 
     public virtual QuizQuestion Question { get; set; } = null!;
 
-    public virtual Quizes Quiz { get; set; } = null!;
+    public virtual Quiz Quiz { get; set; } = null!;
 
     public virtual QuestionOption? SelectedOption { get; set; }
 

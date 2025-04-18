@@ -28,16 +28,17 @@ namespace UtdAttendanceApplication.Controllers;
                  enrolled in that section AND that course, and then we check if the 
                  password is currently live. If these checks are passed, the student is
                  allowed to enter, otherwise, they are given approriate error messages. 
-        - 
+
+        - Quiz: This is the main method that controls the quiz functionality of the code.
  */
 
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
 
-    private readonly UtdAttendanceAppContext _context;
+    private readonly AppDBContext _context;
 
-    public HomeController(ILogger<HomeController> logger, UtdAttendanceAppContext dbContext)
+    public HomeController(ILogger<HomeController> logger, AppDBContext dbContext)
     {
         _logger = logger;
         _context = dbContext;
@@ -173,7 +174,7 @@ public class HomeController : Controller
         }
 
         // Retrieve the quiz with related course and section information
-        var quiz = await _context.Quizes
+        var quiz = await _context.Quizzes
                 .Include(q => q.Course)
                 .Include(q => q.Section)
                 .FirstOrDefaultAsync(q => q.QuizId == id);
@@ -187,8 +188,8 @@ public class HomeController : Controller
 
         // Validate that the quiz is currently available
         // This is to ensure students can only take quizzes within the period specicified by the professor
-        var today = DateOnly.FromDateTime(DateTime.Now);
-        if (today < quiz.AvailabeOn || today > quiz.AvailableUntil)
+        var today = DateTime.Now;
+        if (today < quiz.AvailableOn || today > quiz.AvailableUntil)
         {
             // Quiz is not currently available, display the closed quiz view
             // Quiz is not currently available, display the closed quiz view
@@ -218,7 +219,7 @@ public class HomeController : Controller
         // Questions reference the quiz they belong to through their quiz id
         var questions = await _context.QuizQuestions
             .Include(q => q.QuestionOptions) // inclused the question options
-            .Where(q => q.QuizId == id)  // Get questions only for this specific quiz
+            .Where(q => q.QuizBankId == quiz.QuizBankId)  // Get questions only for this specific quiz
             .Take(3)                     // Maximum 3 questions
             .ToListAsync();
 
@@ -304,7 +305,7 @@ public class HomeController : Controller
         }
 
         // Retrieve quiz information for recording and displaying results
-        var quiz = await _context.Quizes
+        var quiz = await _context.Quizzes
             .Include(q => q.Course)
             .Include(q => q.Section)
             .FirstOrDefaultAsync(q => q.QuizId == quizId);

@@ -3,11 +3,11 @@ using UtdAttendanceApplication.Models;
 
 namespace UtdAttendanceApplication.Data;
 
-public partial class UtdAttendanceAppContext : DbContext
+public partial class AppDBContext : DbContext
 {
     private readonly IConfiguration _configuration;
 
-    public UtdAttendanceAppContext(DbContextOptions<UtdAttendanceAppContext> options, IConfiguration configuration)
+    public AppDBContext(DbContextOptions<AppDBContext> options, IConfiguration configuration)
         : base(options)
     {
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
@@ -25,11 +25,11 @@ public partial class UtdAttendanceAppContext : DbContext
 
     public virtual DbSet<QuestionOption> QuestionOptions { get; set; }
 
+    public virtual DbSet<Quiz> Quizzes { get; set; }
+
     public virtual DbSet<QuizBank> QuizBanks { get; set; }
 
     public virtual DbSet<QuizQuestion> QuizQuestions { get; set; }
-
-    public virtual DbSet<Quizes> Quizes { get; set; }
 
     public virtual DbSet<Section> Sections { get; set; }
 
@@ -264,6 +264,7 @@ public partial class UtdAttendanceAppContext : DbContext
             entity.HasIndex(e => e.QuestionId, "questionID_idx");
 
             entity.Property(e => e.OptionId).HasColumnName("optionID");
+            entity.Property(e => e.OptionLabel).HasColumnName("optionLabel");
             entity.Property(e => e.OptionText)
                 .HasMaxLength(255)
                 .HasColumnName("optionText");
@@ -272,6 +273,53 @@ public partial class UtdAttendanceAppContext : DbContext
             entity.HasOne(d => d.Question).WithMany(p => p.QuestionOptions)
                 .HasForeignKey(d => d.QuestionId)
                 .HasConstraintName("questionID");
+        });
+
+        modelBuilder.Entity<Quiz>(entity =>
+        {
+            entity.HasKey(e => e.QuizId).HasName("PRIMARY");
+
+            entity.ToTable("quizzes");
+
+            entity.HasIndex(e => e.CourseId, "courseID_idx");
+
+            entity.HasIndex(e => e.QuizId, "quizID_UNIQUE").IsUnique();
+
+            entity.HasIndex(e => e.SectionId, "quizSectionID_idx");
+
+            entity.HasIndex(e => e.QuizBankId, "quizbankid_idx");
+
+            entity.Property(e => e.QuizId).HasColumnName("quizID");
+            entity.Property(e => e.AvailableOn)
+                .HasColumnType("datetime")
+                .HasColumnName("availableOn");
+            entity.Property(e => e.AvailableUntil)
+                .HasColumnType("datetime")
+                .HasColumnName("availableUntil");
+            entity.Property(e => e.CourseId).HasColumnName("courseID");
+            entity.Property(e => e.CreatedOn)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("datetime")
+                .HasColumnName("createdOn");
+            entity.Property(e => e.QuizBankId).HasColumnName("quizBankID");
+            entity.Property(e => e.QuizTitle)
+                .HasMaxLength(45)
+                .HasColumnName("quizTitle");
+            entity.Property(e => e.SectionId).HasColumnName("sectionID");
+
+            entity.HasOne(d => d.Course).WithMany(p => p.Quizzes)
+                .HasForeignKey(d => d.CourseId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("quizCourseID");
+
+            entity.HasOne(d => d.QuizBank).WithMany(p => p.Quizzes)
+                .HasForeignKey(d => d.QuizBankId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("quizBankIDLink");
+
+            entity.HasOne(d => d.Section).WithMany(p => p.Quizzes)
+                .HasForeignKey(d => d.SectionId)
+                .HasConstraintName("quizSectionID");
         });
 
         modelBuilder.Entity<QuizBank>(entity =>
@@ -284,27 +332,16 @@ public partial class UtdAttendanceAppContext : DbContext
 
             entity.HasIndex(e => e.QuizBankId, "quizBankID_UNIQUE").IsUnique();
 
-            entity.HasIndex(e => e.QuestionId, "quizBankQuestionID_idx");
-
             entity.HasIndex(e => e.SectionId, "quizBankSectionID_idx");
 
             entity.Property(e => e.QuizBankId).HasColumnName("quizBankID");
             entity.Property(e => e.CourseId).HasColumnName("courseID");
-            entity.Property(e => e.QuestionId).HasColumnName("questionID");
-            entity.Property(e => e.QuizTitle)
-                .HasMaxLength(255)
-                .HasColumnName("quizTitle");
             entity.Property(e => e.SectionId).HasColumnName("sectionID");
 
             entity.HasOne(d => d.Course).WithMany(p => p.QuizBanks)
                 .HasForeignKey(d => d.CourseId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("quizBankCourseID");
-
-            entity.HasOne(d => d.Question).WithMany(p => p.QuizBanks)
-                .HasForeignKey(d => d.QuestionId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("quizBankQuestionID");
 
             entity.HasOne(d => d.Section).WithMany(p => p.QuizBanks)
                 .HasForeignKey(d => d.SectionId)
@@ -318,62 +355,21 @@ public partial class UtdAttendanceAppContext : DbContext
 
             entity.ToTable("quizQuestions");
 
-            entity.HasIndex(e => e.QuizId, "questionForQuizID_idx");
-
             entity.HasIndex(e => e.QuestionId, "questionID_UNIQUE").IsUnique();
+
+            entity.HasIndex(e => e.QuizBankId, "quizquestionbankID_idx");
 
             entity.Property(e => e.QuestionId).HasColumnName("questionID");
             entity.Property(e => e.CorrectOption).HasColumnName("correctOption");
             entity.Property(e => e.QuestionText)
                 .HasColumnType("text")
                 .HasColumnName("questionText");
-            entity.Property(e => e.QuizId).HasColumnName("quizID");
+            entity.Property(e => e.QuizBankId).HasColumnName("quizBankID");
 
-            entity.HasOne(d => d.Quiz).WithMany(p => p.QuizQuestions)
-                .HasForeignKey(d => d.QuizId)
+            entity.HasOne(d => d.QuizBank).WithMany(p => p.QuizQuestions)
+                .HasForeignKey(d => d.QuizBankId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("questionForQuizID");
-        });
-
-        modelBuilder.Entity<Quizes>(entity =>
-        {
-            entity.HasKey(e => e.QuizId).HasName("PRIMARY");
-
-            entity.ToTable("quizes");
-
-            entity.HasIndex(e => e.CourseId, "courseID_idx");
-
-            entity.HasIndex(e => e.QuizId, "quizID_UNIQUE").IsUnique();
-
-            entity.HasIndex(e => e.SectionId, "quizSectionID_idx");
-
-            entity.Property(e => e.QuizId).HasColumnName("quizID");
-            entity.Property(e => e.AvailabeOn).HasColumnName("availabeOn");
-            entity.Property(e => e.AvailableUntil).HasColumnName("availableUntil");
-            entity.Property(e => e.CourseId).HasColumnName("courseID");
-            entity.Property(e => e.CreatedOn)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("datetime")
-                .HasColumnName("createdOn");
-            entity.Property(e => e.QuizTitle)
-                .HasMaxLength(45)
-                .HasColumnName("quizTitle");
-            entity.Property(e => e.SectionId).HasColumnName("sectionID");
-            entity.Property(e => e.TimeEnd)
-                .HasColumnType("time")
-                .HasColumnName("timeEnd");
-            entity.Property(e => e.TimeStart)
-                .HasColumnType("time")
-                .HasColumnName("timeStart");
-
-            entity.HasOne(d => d.Course).WithMany(p => p.Quizes)
-                .HasForeignKey(d => d.CourseId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("quizCourseID");
-
-            entity.HasOne(d => d.Section).WithMany(p => p.Quizes)
-                .HasForeignKey(d => d.SectionId)
-                .HasConstraintName("quizSectionID");
+                .HasConstraintName("quizQuestioBankID");
         });
 
         modelBuilder.Entity<Section>(entity =>
