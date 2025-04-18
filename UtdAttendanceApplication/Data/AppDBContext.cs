@@ -392,6 +392,9 @@ public partial class AppDBContext : DbContext
             entity.Property(e => e.StartTime)
                 .HasColumnType("time")
                 .HasColumnName("startTime");
+            entity.Property(e => e.MeetingDays)
+                .HasColumnName("meetingDays")
+                .HasColumnType("set('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday')");
 
             entity.HasOne(d => d.Course).WithMany(p => p.Sections)
                 .HasForeignKey(d => d.CourseId)
