@@ -215,12 +215,17 @@ public class HomeController : Controller
             return View("AlreadyTaken");
         }
 
-        // Get all questions directly associated with this quiz (0-3 questions)
+        // We first get all the question IDs assigned to our bank using this table
+        var questionIds = await _context.QuizQuestionBankAssignments
+            .Where(q => q.QuizId == quiz.QuizId)
+            .Select(q => q.QuestionId)
+            .ToListAsync();
+
+        // Get all questions directly associated with this quiz from our questionIDs (0-3 questions)
         // Questions reference the quiz they belong to through their quiz id
         var questions = await _context.QuizQuestions
-            .Include(q => q.QuestionOptions) // inclused the question options
-            .Where(q => q.QuizBankId == quiz.QuizBankId)  // Get questions only for this specific quiz
-            .Take(3)                     // Maximum 3 questions
+            .Where(q => questionIds.Contains(q.QuestionId)) // inclused the question options
+            .Include(q => q.QuestionOptions) // Get questions only for this specific quiz 
             .ToListAsync();
 
         // Create list of QuizQuestionViewModel objects
@@ -342,6 +347,9 @@ public class HomeController : Controller
 
         _context.Attendances.Add(attendance);
 
+        // Prepare a list of results (correct answers) to send to the view
+        var results = new List<QuizResult>();
+
         // Record answers if questions were answered
         if (model.Questions != null && model.Questions.Any())
         {
@@ -350,11 +358,33 @@ public class HomeController : Controller
                 // Only process questions that have an answer selected
                 if (question.SelectedOptionId.HasValue && question.SelectedOptionId > 0)
                 {
-                    // Get the correct option for scoring
-                    var correctOption = await _context.QuizQuestions
+                    // Get the correct option label stored in the question
+                    var correctOptionLabel = await _context.QuizQuestions
                         .Where(q => q.QuestionId == question.QuestionId)
                         .Select(q => q.CorrectOption)
                         .FirstOrDefaultAsync();
+
+                    // Get the optionLabel for the selected optionID
+                    var selectedOptionLabel = await _context.QuestionOptions
+                        .Where(o => o.OptionId == question.SelectedOptionId)
+                        .Select(o => o.OptionLabel)
+                        .FirstOrDefaultAsync();
+
+                    // Now compare labels, not IDs
+                    bool isCorrect = correctOptionLabel.HasValue && selectedOptionLabel.HasValue && correctOptionLabel == selectedOptionLabel;
+
+                    // Retrieve the question text from the QuizQuestions table
+                    var questionText = await _context.QuizQuestions
+                        .Where(q => q.QuestionId == question.QuestionId)
+                        .Select(q => q.QuestionText)
+                        .FirstOrDefaultAsync();
+
+                    // Add result to the list
+                    results.Add(new QuizResult
+                    {
+                        QuestionText = questionText,
+                        IsCorrect = isCorrect
+                    });
 
                     // Create record of student's answer
                     var studentAnswer = new StudentAnswer
@@ -363,7 +393,7 @@ public class HomeController : Controller
                         StudentId = student.StudentId,
                         QuestionId = question.QuestionId,
                         SelectedOptionId = question.SelectedOptionId,
-                        IsCorrect = (sbyte)(question.SelectedOptionId == correctOption ? 1 : 0),
+                        IsCorrect = (sbyte)(isCorrect ? 1 : 0),
                         SubmittedOn = DateTime.Now,
                         IpAddress = GetClientIpAddress()
                     };
@@ -382,8 +412,9 @@ public class HomeController : Controller
         ViewBag.QuizTitle = quiz.QuizTitle;
         ViewBag.SubmissionTime = DateTime.Now;
 
-        return View("QuizResult");
+        return View("QuizResult", new QuizResultViewModel { Results = results });
     }
+
     // Helper method to retrieve the client's IP address
     private string GetClientIpAddress()
     {

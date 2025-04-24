@@ -1,4 +1,7 @@
-﻿namespace UtdAttendanceApplication.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace UtdAttendanceApplication.Models;
 
 public partial class Section
 {
@@ -18,7 +21,7 @@ public partial class Section
 
     public int Duration { get; set; }
 
-    public string MeetingDays { get; set; } = null!;
+    public string MeetingRoom { get; set; } = null!;
 
     public virtual ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
 

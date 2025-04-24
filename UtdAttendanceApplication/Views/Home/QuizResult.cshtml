@@ -3,9 +3,29 @@
 }
 
 <div class="container text-center mt-5">
-    <div class="alert alert-success p-5">
+    <div class="border-primary p-5">
         <h2>Quiz Submitted Successfully</h2>
-        <p class="lead mt-3">Your attendance has been recorded.</p>
+        <p class="lead mt-3">@ViewBag.StudentName, your attendance has been recorded at @ViewBag.SubmissionTime.</p>
+        <h3>Results</h3>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th class="text-left">Question</th>
+                    <th class="text-left">Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var result in Model.Results)
+                {
+                    <tr>
+                        <td class="text-left">@result.QuestionText</td>
+                        <td class="text-left @(result.IsCorrect ? "text-success" : "text-danger")">@(result.IsCorrect ? "Correct" : "Incorrect")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <hr>
         <div class="mt-4">
             <a asp-action="Index" class="btn btn-primary">Return to Login</a>
         </div>

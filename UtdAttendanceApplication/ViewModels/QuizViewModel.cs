@@ -22,4 +22,16 @@
         public int OptionId { get; set; }
         public string? OptionText { get; set; }
     }
+
+    public class QuizResultViewModel
+    {
+        public List<QuizResult> Results { get; set; } = new List<QuizResult>();
+    }
+
+    public class QuizResult
+    {
+        public string? QuestionText { get; set; }
+        public bool IsCorrect { get; set; }
+    }
+
 }

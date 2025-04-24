@@ -15,6 +15,8 @@ public partial class Student
 
     public string UserName { get; set; } = null!;
 
+    public DateOnly EnrolledOn { get; set; }
+
     public DateTime? CreatedOn { get; set; }
 
     public virtual ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();

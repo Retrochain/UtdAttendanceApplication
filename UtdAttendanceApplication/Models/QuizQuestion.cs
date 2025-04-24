@@ -17,5 +17,7 @@ public partial class QuizQuestion
 
     public virtual QuizBank QuizBank { get; set; } = null!;
 
+    public virtual ICollection<QuizQuestionBankAssignment> QuizQuestionBankAssignments { get; set; } = new List<QuizQuestionBankAssignment>();
+
     public virtual ICollection<StudentAnswer> StudentAnswers { get; set; } = new List<StudentAnswer>();
 }

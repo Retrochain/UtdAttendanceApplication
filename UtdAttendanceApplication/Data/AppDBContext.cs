@@ -31,6 +31,8 @@ public partial class AppDBContext : DbContext
 
     public virtual DbSet<QuizQuestion> QuizQuestions { get; set; }
 
+    public virtual DbSet<QuizQuestionBankAssignment> QuizQuestionBankAssignments { get; set; }
+
     public virtual DbSet<Section> Sections { get; set; }
 
     public virtual DbSet<Student> Students { get; set; }
@@ -84,19 +86,23 @@ public partial class AppDBContext : DbContext
 
             entity.HasOne(d => d.Course).WithMany(p => p.Attendances)
                 .HasForeignKey(d => d.CourseId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("attendanceCourseID");
 
             entity.HasOne(d => d.Quiz).WithMany(p => p.Attendances)
                 .HasForeignKey(d => d.QuizId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("attendanceQuizID");
 
             entity.HasOne(d => d.Section).WithMany(p => p.Attendances)
                 .HasForeignKey(d => d.SectionId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("attendanceSectionID");
 
             entity.HasOne(d => d.Student).WithMany(p => p.Attendances)
                 .HasPrincipalKey(p => p.StudentId)
                 .HasForeignKey(d => d.StudentId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("attendanceStudentID");
         });
 
@@ -112,6 +118,9 @@ public partial class AppDBContext : DbContext
 
             entity.Property(e => e.CourseId).HasColumnName("courseID");
             entity.Property(e => e.CourseCode).HasColumnName("courseCode");
+            entity.Property(e => e.CourseDept)
+                .HasMaxLength(45)
+                .HasColumnName("courseDept");
             entity.Property(e => e.CourseName)
                 .HasMaxLength(45)
                 .HasColumnName("courseName");
@@ -152,18 +161,15 @@ public partial class AppDBContext : DbContext
 
             entity.HasOne(d => d.Course).WithMany(p => p.Enrollments)
                 .HasForeignKey(d => d.CourseId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("courseID");
 
             entity.HasOne(d => d.Section).WithMany(p => p.Enrollments)
                 .HasForeignKey(d => d.SectionId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("sectionID");
 
             entity.HasOne(d => d.Student).WithMany(p => p.Enrollments)
                 .HasPrincipalKey(p => p.StudentId)
                 .HasForeignKey(d => d.StudentId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("studentID");
         });
 
@@ -195,17 +201,14 @@ public partial class AppDBContext : DbContext
 
             entity.HasOne(d => d.Course).WithMany(p => p.Passwords)
                 .HasForeignKey(d => d.CourseId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("passCourseID");
 
             entity.HasOne(d => d.Quiz).WithMany(p => p.Passwords)
                 .HasForeignKey(d => d.QuizId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("passQuizID");
 
             entity.HasOne(d => d.Section).WithMany(p => p.Passwords)
                 .HasForeignKey(d => d.SectionId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("passSectionID");
         });
 
@@ -272,6 +275,7 @@ public partial class AppDBContext : DbContext
 
             entity.HasOne(d => d.Question).WithMany(p => p.QuestionOptions)
                 .HasForeignKey(d => d.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("questionID");
         });
 
@@ -314,7 +318,6 @@ public partial class AppDBContext : DbContext
 
             entity.HasOne(d => d.QuizBank).WithMany(p => p.Quizzes)
                 .HasForeignKey(d => d.QuizBankId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("quizBankIDLink");
 
             entity.HasOne(d => d.Section).WithMany(p => p.Quizzes)
@@ -336,6 +339,9 @@ public partial class AppDBContext : DbContext
 
             entity.Property(e => e.QuizBankId).HasColumnName("quizBankID");
             entity.Property(e => e.CourseId).HasColumnName("courseID");
+            entity.Property(e => e.QuizBankTitle)
+                .HasMaxLength(255)
+                .HasColumnName("quizBankTitle");
             entity.Property(e => e.SectionId).HasColumnName("sectionID");
 
             entity.HasOne(d => d.Course).WithMany(p => p.QuizBanks)
@@ -368,8 +374,32 @@ public partial class AppDBContext : DbContext
 
             entity.HasOne(d => d.QuizBank).WithMany(p => p.QuizQuestions)
                 .HasForeignKey(d => d.QuizBankId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("quizQuestioBankID");
+        });
+
+        modelBuilder.Entity<QuizQuestionBankAssignment>(entity =>
+        {
+            entity.HasKey(e => e.AssignmentId).HasName("PRIMARY");
+
+            entity.ToTable("quizQuestionBankAssignment");
+
+            entity.HasIndex(e => e.AssignmentId, "assignmentID_UNIQUE").IsUnique();
+
+            entity.HasIndex(e => e.QuestionId, "quizquestionassignmentquestionID_idx");
+
+            entity.HasIndex(e => e.QuizId, "quizquestionassignmentquizID_idx");
+
+            entity.Property(e => e.AssignmentId).HasColumnName("assignmentID");
+            entity.Property(e => e.QuestionId).HasColumnName("questionID");
+            entity.Property(e => e.QuizId).HasColumnName("quizID");
+
+            entity.HasOne(d => d.Question).WithMany(p => p.QuizQuestionBankAssignments)
+                .HasForeignKey(d => d.QuestionId)
+                .HasConstraintName("quizquestionassignmentquestionID");
+
+            entity.HasOne(d => d.Quiz).WithMany(p => p.QuizQuestionBankAssignments)
+                .HasForeignKey(d => d.QuizId)
+                .HasConstraintName("quizquestionassignmentquizID");
         });
 
         modelBuilder.Entity<Section>(entity =>
@@ -387,14 +417,14 @@ public partial class AppDBContext : DbContext
             entity.Property(e => e.EndTime)
                 .HasColumnType("time")
                 .HasColumnName("endTime");
+            entity.Property(e => e.MeetingRoom)
+                .HasMaxLength(45)
+                .HasColumnName("meetingRoom");
             entity.Property(e => e.SectionCode).HasColumnName("sectionCode");
             entity.Property(e => e.StartDate).HasColumnName("startDate");
             entity.Property(e => e.StartTime)
                 .HasColumnType("time")
                 .HasColumnName("startTime");
-            entity.Property(e => e.MeetingDays)
-                .HasColumnName("meetingDays")
-                .HasColumnType("set('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday')");
 
             entity.HasOne(d => d.Course).WithMany(p => p.Sections)
                 .HasForeignKey(d => d.CourseId)
@@ -425,6 +455,7 @@ public partial class AppDBContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("datetime")
                 .HasColumnName("createdOn");
+            entity.Property(e => e.EnrolledOn).HasColumnName("enrolledOn");
             entity.Property(e => e.FirstName)
                 .HasMaxLength(45)
                 .HasColumnName("firstName");
@@ -468,7 +499,6 @@ public partial class AppDBContext : DbContext
 
             entity.HasOne(d => d.Question).WithMany(p => p.StudentAnswers)
                 .HasForeignKey(d => d.QuestionId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("submittedQuestionID");
 
             entity.HasOne(d => d.Quiz).WithMany(p => p.StudentAnswers)
@@ -478,6 +508,7 @@ public partial class AppDBContext : DbContext
 
             entity.HasOne(d => d.SelectedOption).WithMany(p => p.StudentAnswers)
                 .HasForeignKey(d => d.SelectedOptionId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("submittedSelectedOptionID");
 
             entity.HasOne(d => d.Student).WithMany(p => p.StudentAnswers)

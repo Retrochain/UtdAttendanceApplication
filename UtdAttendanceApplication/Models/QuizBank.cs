@@ -7,6 +7,8 @@ public partial class QuizBank
 {
     public int QuizBankId { get; set; }
 
+    public string? QuizBankTitle { get; set; }
+
     public int CourseId { get; set; }
 
     public int SectionId { get; set; }
