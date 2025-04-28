@@ -2,32 +2,52 @@
     ViewData["Title"] = "Quiz Submitted";
 }
 
-<div class="container text-center mt-5">
-    <div class="border-primary p-5">
-        <h2>Quiz Submitted Successfully</h2>
-        <p class="lead mt-3">@ViewBag.StudentName, your attendance has been recorded at @ViewBag.SubmissionTime.</p>
-        <h3>Results</h3>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th class="text-left">Question</th>
-                    <th class="text-left">Result</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var result in Model.Results)
-                {
-                    <tr>
-                        <td class="text-left">@result.QuestionText</td>
-                        <td class="text-left @(result.IsCorrect ? "text-success" : "text-danger")">@(result.IsCorrect ? "Correct" : "Incorrect")</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+<!--
+    Written by Daniel Kirfman
+    For CS 4485.0W1, Final Project, Starting 04/28/2025
 
-        <hr>
-        <div class="mt-4">
-            <a asp-action="Index" class="btn btn-primary">Return to Login</a>
+    UI design added for quiz and quiz taken screens
+-->
+
+<div class="container text-center mt-5">
+
+    <style>
+        [class*= "col"]
+        {
+            padding: 1rem;
+            background-color: #114634;
+            border: 2px solid orange;
+            color: white;
+        }
+    </style>
+
+    <div class="container d-flex align-items-center justify-content-center" style="padding-top: 80px;">
+        <div class="col-md-8" style=" max-width: 700px;">
+            <h2>Quiz Submitted Successfully</h2>
+            <p class="lead mt-3">@ViewBag.StudentName, your attendance has been recorded at @ViewBag.SubmissionTime.</p>
+            <h3>Results</h3>
+            <table class="table table-striped" style="background-color: white;">
+                <thead>
+                    <tr>
+                        <th class="text-left">Question</th>
+                        <th class="text-left">Result</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var result in Model.Results)
+                    {
+                        <tr>
+                            <td class="text-left">@result.QuestionText</td>
+                            <td class="text-left @(result.IsCorrect ? "text-success" : "text-danger")">@(result.IsCorrect ? "Correct" : "Incorrect")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <hr>
+            <div class="mt-4">
+                <a asp-action="Index" class="btn btn-primary">Return to Login</a>
+            </div>
         </div>
     </div>
 </div>
