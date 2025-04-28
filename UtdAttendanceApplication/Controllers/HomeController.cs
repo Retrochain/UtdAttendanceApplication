@@ -30,8 +30,20 @@ namespace UtdAttendanceApplication.Controllers;
                  allowed to enter, otherwise, they are given approriate error messages. 
 
         - Quiz: This is the main method that controls the quiz functionality of the code.
+                The method first validates the student, validates the quiz they are assigned, 
+                validates the questions and then allowes the user access to their assigned
+                quiz. It also checks if the quiz is either a) already taken or b) no longer
+                available. Appropriate views are displayed for quiz, quiz taken or quiz 
+                unavailable. After the student submits the quiz, the method then records their
+                attendance in the database, along with their IP address and the answer choice
+                they picked. The user is shown a view that displays their question/quiz result
+                along with a confirmation screen telling them that their attendance has been 
+                recorded. 
  */
 
+
+// Written by Akshaan Singh on 4/3/2025
+// Edited by Ricardo Vargas and Dylan Hua from 4/4/2025 to 4/23/2025
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
