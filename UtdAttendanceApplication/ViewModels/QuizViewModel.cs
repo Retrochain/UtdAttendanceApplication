@@ -3,7 +3,7 @@
     public class QuizViewModel
     {
         public string? CourseName { get; set; }
-        public int CourseSection { get; set; }
+        public string? CourseSection { get; set; }
         public string? ProfName { get; set; }
         public int QuizBankId { get; set; }
         public List<QuizQuestionViewModel> Questions { get; set; } = new List<QuizQuestionViewModel>();

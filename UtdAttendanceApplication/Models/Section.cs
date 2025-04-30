@@ -9,7 +9,7 @@ public partial class Section
 
     public int CourseId { get; set; }
 
-    public int SectionCode { get; set; }
+    public string SectionCode { get; set; } = null!;
 
     public TimeOnly StartTime { get; set; }
 
@@ -22,6 +22,8 @@ public partial class Section
     public int Duration { get; set; }
 
     public string MeetingRoom { get; set; } = null!;
+
+    public bool IsDeleted { get; set; }
 
     public virtual ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
 

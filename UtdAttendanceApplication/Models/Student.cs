@@ -15,7 +15,7 @@ public partial class Student
 
     public string UserName { get; set; } = null!;
 
-    public DateOnly EnrolledOn { get; set; }
+    public DateTime? EnrolledOn { get; set; }
 
     public DateTime? CreatedOn { get; set; }
 

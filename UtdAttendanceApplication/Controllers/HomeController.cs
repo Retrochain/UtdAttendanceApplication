@@ -82,7 +82,7 @@ public class HomeController : Controller
                 {
                     // We then check if the password belongs to the course and section
                     var stdntPassCourse = _context.Courses.Where(c => c.CourseId == stdntPass.CourseId).FirstOrDefault();
-                    var stdntPassSection = _context.Sections.Where(s => s.SectionId == stdntPass.SectionId).FirstOrDefault();
+                    var stdntPassSection = _context.Sections.Where(s => s.SectionId == stdntPass.SectionId && !s.IsDeleted).FirstOrDefault();
                     if ((stdntPassCourse != null) && (stdntPassSection != null))
                     {
                         // We then check if the password is currently live or expired
@@ -189,9 +189,10 @@ public class HomeController : Controller
         var quiz = await _context.Quizzes
                 .Include(q => q.Course)
                 .Include(q => q.Section)
-                .FirstOrDefaultAsync(q => q.QuizId == id);
+                .Where(q => q.QuizId == id && (q.Section == null || !q.Section.IsDeleted))
+                .FirstOrDefaultAsync();
 
-        if (quiz == null)
+        if (quiz == null || (quiz.Section != null && quiz.Section.IsDeleted))
         {
             // If the quiz does not exist then the student is returned to login page
             ModelState.AddModelError("", "Quiz not found.");
@@ -210,7 +211,6 @@ public class HomeController : Controller
             ViewBag.CourseName = quiz.Course.CourseName;
             ViewBag.SectionCode = quiz.Section?.SectionCode.ToString() ?? "N/A";
             return View("QuizClosed");
-
         }
 
         // Check if student has already taken this quiz
@@ -264,7 +264,7 @@ public class HomeController : Controller
         var viewModel = new QuizViewModel
         {
             CourseName = quiz.Course.CourseName,
-            CourseSection = quiz.Section?.SectionCode ?? 0,
+            CourseSection = quiz.Section?.SectionCode ?? "",
             ProfName = quiz.Course.ProfName,
             QuizBankId = 0,
             Questions = questionViewModels

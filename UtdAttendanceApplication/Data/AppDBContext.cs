@@ -73,7 +73,7 @@ public partial class AppDBContext : DbContext
 
             entity.Property(e => e.AttendanceId).HasColumnName("attendanceID");
             entity.Property(e => e.AttendanceStatus)
-                .HasColumnType("enum('present','absent','excused')")
+                .HasColumnType("enum('present','absent','excused','late')")
                 .HasColumnName("attendanceStatus");
             entity.Property(e => e.CourseId).HasColumnName("courseID");
             entity.Property(e => e.QuizId).HasColumnName("quizID");
@@ -187,9 +187,11 @@ public partial class AppDBContext : DbContext
 
             entity.Property(e => e.PasswordId).HasColumnName("passwordID");
             entity.Property(e => e.AvailableOn)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("datetime")
                 .HasColumnName("availableOn");
             entity.Property(e => e.AvailableUntil)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("datetime")
                 .HasColumnName("availableUntil");
             entity.Property(e => e.CourseId).HasColumnName("courseID");
@@ -295,9 +297,11 @@ public partial class AppDBContext : DbContext
 
             entity.Property(e => e.QuizId).HasColumnName("quizID");
             entity.Property(e => e.AvailableOn)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("datetime")
                 .HasColumnName("availableOn");
             entity.Property(e => e.AvailableUntil)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("datetime")
                 .HasColumnName("availableUntil");
             entity.Property(e => e.CourseId).HasColumnName("courseID");
@@ -417,10 +421,13 @@ public partial class AppDBContext : DbContext
             entity.Property(e => e.EndTime)
                 .HasColumnType("time")
                 .HasColumnName("endTime");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.MeetingRoom)
                 .HasMaxLength(45)
                 .HasColumnName("meetingRoom");
-            entity.Property(e => e.SectionCode).HasColumnName("sectionCode");
+            entity.Property(e => e.SectionCode)
+                .HasMaxLength(3)
+                .HasColumnName("sectionCode");
             entity.Property(e => e.StartDate).HasColumnName("startDate");
             entity.Property(e => e.StartTime)
                 .HasColumnType("time")
@@ -455,7 +462,10 @@ public partial class AppDBContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("datetime")
                 .HasColumnName("createdOn");
-            entity.Property(e => e.EnrolledOn).HasColumnName("enrolledOn");
+            entity.Property(e => e.EnrolledOn)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("datetime")
+                .HasColumnName("enrolledOn");
             entity.Property(e => e.FirstName)
                 .HasMaxLength(45)
                 .HasColumnName("firstName");

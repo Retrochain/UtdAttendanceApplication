@@ -1,4 +1,7 @@
-﻿namespace UtdAttendanceApplication.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace UtdAttendanceApplication.Models;
 
 public partial class Attendance
 {
