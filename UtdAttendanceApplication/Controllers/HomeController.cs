@@ -90,8 +90,11 @@ public class HomeController : Controller
                         if (currentTime >= stdntPass.AvailableOn && currentTime <= stdntPass.AvailableUntil)
                         {
                             // We then check if the student belongs to the course or the section
-                            var stdntEnroll = _context.Enrollments.Where(e => e.StudentId == stdnt.StudentId).FirstOrDefault();
-                            if ((stdntEnroll?.CourseId == stdntPassCourse.CourseId) && (stdntEnroll?.SectionId == stdntPassSection.SectionId))
+                            var stdntEnroll = _context.Enrollments.Where(e => e.StudentId == stdnt.StudentId).ToList();
+
+                            bool isEnrolled = stdntEnroll.Any(e => e.CourseId == stdntPassCourse.CourseId && e.SectionId == stdntPassSection.SectionId);
+
+                            if (isEnrolled)
                             {
                                 // Create authentication claims
                                 var claims = new List<Claim>
