@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace UtdAttendanceApplication.Models;
+﻿namespace UtdAttendanceApplication.Models;
 
 public partial class Student
 {
@@ -14,8 +11,6 @@ public partial class Student
     public string? LastName { get; set; }
 
     public string UserName { get; set; } = null!;
-
-    public DateTime? EnrolledOn { get; set; }
 
     public DateTime? CreatedOn { get; set; }
 

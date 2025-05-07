@@ -462,10 +462,6 @@ public partial class AppDBContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("datetime")
                 .HasColumnName("createdOn");
-            entity.Property(e => e.EnrolledOn)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("datetime")
-                .HasColumnName("enrolledOn");
             entity.Property(e => e.FirstName)
                 .HasMaxLength(45)
                 .HasColumnName("firstName");
